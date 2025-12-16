@@ -1,10 +1,14 @@
+#スプレッドシートをCSVとして公開
 const SHEET_CSV_URL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vR7Rdo_eCMQF-HTxCjdZJDx6z8OQnYjc0WTVwuc_N6TNYpdwfFy5DLRmW35gbLZklPcuSGxmmGfafeT/pub?output=csv";
 
+#csvから読み込んだメニュー業
+#表示中のカテゴリ名
 let allRows = [];
 let currentCategory = "";
 
-// ===== lang =====
+#即実行関数(その場1回だけ実行)
+#location.
 const lang = (() => {
   const p = new URLSearchParams(location.search).get("lang");
   return ["jp", "en", "zh"].includes(p) ? p : "jp";
