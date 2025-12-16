@@ -4,45 +4,37 @@ const SHEET_CSV_URL =
 let allRows = [];
 let currentCategory = "";
 
-// === 言語取得（日本語 / 英語 / 中国語） ===
-const params = new URLSearchParams(window.location.search);
-const langParam = params.get("lang");
-let currentLang = ["jp", "en", "zh"].includes(langParam) ? langParam : "jp";
+// ===== lang =====
+const lang = (() => {
+  const p = new URLSearchParams(location.search).get("lang");
+  return ["jp", "en", "zh"].includes(p) ? p : "jp";
+})();
 
-// === 数値を日本円表記に（※今は未使用、必要ならPrice整形で使える） ===
-function yen(v) {
-  const n = Number(v);
-  return isNaN(n) ? v : n.toLocaleString("ja-JP");
-}
-
-// === 列名揺れ対策 ===
-const norm = (s) => String(s || "").trim().toLowerCase().replace(/\s+/g, " ");
-function get(row, wanted) {
+// ===== utils =====
+const norm = (s) => String(s ?? "").trim().toLowerCase().replace(/\s+/g, " ");
+const get = (row, wanted) => {
   const key = Object.keys(row).find((k) => norm(k) === norm(wanted));
   return key ? String(row[key]).trim() : "";
-}
+};
+const catOf = (row) => get(row, "Group") || get(row, "Category");
 
-function getCategory(row) {
-  return get(row, "Group") || get(row, "Category");
-}
+const t = (jp, en, zh) => (lang === "en" ? en : lang === "zh" ? zh : jp);
 
-// === Google Drive 共有リンク → 画像表示用URLに変換 ===
-function normalizeImageUrl(url) {
-  if (!url) return "";
-  const u = String(url).trim();
-
-  // Drive画像を確実に表示する用（thumbnail方式）
+const normalizeImageUrl = (url) => {
+  const u = String(url || "").trim();
+  if (!u) return "";
   const m1 = u.match(/\/file\/d\/([^/]+)/);
-  if (m1) return `https://drive.google.com/thumbnail?id=${m1[1]}&sz=w1200`;
-
   const m2 = u.match(/[?&]id=([^&]+)/);
-  if (m2) return `https://drive.google.com/thumbnail?id=${m2[1]}&sz=w1200`;
+  const id = (m1 && m1[1]) || (m2 && m2[1]);
+  return id ? `https://drive.google.com/thumbnail?id=${id}&sz=w1200` : u;
+};
 
-  return u;
-}
+const visibleRow = (r) => {
+  const v = get(r, "Visible").toLowerCase();
+  return !(v && /^(×|✗|x|no|0|false)$/i.test(v));
+};
 
-
-// === カテゴリ翻訳辞書 ===
+// ===== dict =====
 const CATEGORY_TRANSLATION = {
   jp: {
     "季節のお料理": "季節のお料理",
@@ -76,10 +68,9 @@ const CATEGORY_TRANSLATION = {
     "デザート": "Dessert",
     "その他": "Others",
   },
-  zh: {}, // 現状は準備中表示なので未使用
+  zh: {},
 };
 
-// === カテゴリ順序 ===
 const CATEGORY_ORDER = [
   "季節のお料理",
   "うなぎ料理",
@@ -96,198 +87,132 @@ const CATEGORY_ORDER = [
   "デザート",
 ];
 
-// === ヘッダー切り替え ===
-function renderHeader() {
-  const header = document.getElementById("header");
+// ===== render =====
+const renderHeader = () => {
+  const h = document.getElementById("header");
+  h.innerHTML = t(
+    `<h1>いちのや料理メニュー<br><span class="en">うなぎ料理専門店</span></h1>`,
+    `<h1>Ichinoya Menu<br><span class="en">Unagi Restaurant Menu</span></h1>`,
+    `<h1>一之屋 菜单<br><span class="en">鳗鱼料理专门店</span></h1>`
+  );
+};
 
-  if (currentLang === "en") {
-    header.innerHTML = `
-      <h1>Ichinoya Menu<br><span class="en">Unagi Restaurant Menu</span></h1>
-    `;
-  } else if (currentLang === "zh") {
-    header.innerHTML = `
-      <h1>一之屋 菜单<br><span class="en">鳗鱼料理专门店</span></h1>
-    `;
-  } else {
-    header.innerHTML = `
-      <h1>いちのや料理メニュー<br><span class="en">うなぎ料理専門店</span></h1>
-    `;
-  }
-}
+const translateCat = (cat) => CATEGORY_TRANSLATION[lang]?.[cat] || cat;
 
-// === メニューカード描画 ===
-function cardHTML(row) {
-  const cat = getCategory(row);
+const formatPrice = (pr) => {
+  if (!pr) return "";
+  const tr = (s) =>
+    lang === "en"
+      ? s.replace(/グラス/g, "Glass").replace(/ボトル/g, "Bottle").replace(/ポット/g, "Pot")
+      : lang === "zh"
+      ? s.replace(/グラス/g, "杯").replace(/ボトル/g, "瓶").replace(/ポット/g, "壶")
+      : s;
+
+  const toYen = (s) => s.replace(/(\d[\d,]*)(?!\s*ml)/g, "￥$1");
+
+  if (pr.includes("/"))
+    return pr
+      .split("/")
+      .map((p) => `<div class="price">${toYen(tr(p.trim()))}</div>`)
+      .join("");
+
+  return `<p class="price">${toYen(tr(pr.trim()))}</p>`;
+};
+
+const cardHTML = (row) => {
+  const cat = catOf(row);
   const sub = get(row, "Category");
 
-  const jp = get(row, "Name (JP)");
-  const en = get(row, "Name (EN)");
-  const zh = get(row, "Name (ZH)");
+  const title = t(get(row, "Name (JP)"), get(row, "Name (EN)"), get(row, "Name (ZH)"));
+  const jpName = get(row, "Name (JP)");
+  const desc = t(get(row, "Description (JP)"), get(row, "Description (EN)"), get(row, "Description (ZH)"));
 
-  const djp = get(row, "Description (JP)");
-  const den = get(row, "Description (EN)");
-  const dzh = get(row, "Description (ZH)");
-
-  const pr = get(row, "Price");
-  const imgU = get(row, "Image URL");
-  const take = get(row, "Takeout");
-
-  // === 画像（Drive対応 + 遅延読み込み + エラー時の保険） ===
-  const imgSrc = normalizeImageUrl(imgU);
+  const imgSrc = normalizeImageUrl(get(row, "Image URL"));
   const img = imgSrc
-    ? `<img src="${imgSrc}" loading="lazy" alt="${en || jp || ""}" onerror="this.style.display='none'">`
+    ? `<img src="${imgSrc}" loading="lazy" alt="${get(row, "Name (EN)") || jpName}" onerror="this.style.display='none'">`
     : "";
 
-  // === テイクアウトバッジ ===
+  const take = get(row, "Takeout");
   const takeBadge =
     take && /ok/i.test(take)
-      ? `<span class="takeout-badge">${
-          currentLang === "zh"
-            ? "可外带"
-            : currentLang === "en"
-            ? "Takeout OK"
-            : "テイクアウト可"
-        }</span>`
+      ? `<span class="takeout-badge">${t("テイクアウト可", "Takeout OK", "可外带")}</span>`
       : "";
 
-  // === タイトル・説明 ===
-  const title = currentLang === "zh" ? zh : currentLang === "en" ? en : jp;
-  const desc = currentLang === "zh" ? dzh : currentLang === "en" ? den : djp;
+  const noteJP = lang === "jp" ? get(row, "Note (JP)") : "";
+  const noteHTML = noteJP ? `<p class="note-sub">${noteJP}</p>` : "";
 
-  // === 備考欄（日本語のみ） ===
-  let noteHTML = "";
-  if (currentLang === "jp") {
-    const njp = get(row, "Note (JP)");
-    if (njp) noteHTML = `<p class="note-sub">${njp}</p>`;
-  }
-
-  // === 価格整形（既存ロジックを維持） ===
-  let prText = "";
-  if (pr) {
-    const translatePriceTerm = (text) => {
-      if (currentLang === "en") {
-        return text.replace(/グラス/g, "Glass").replace(/ボトル/g, "Bottle").replace(/ポット/g, "Pot");
-      } else if (currentLang === "zh") {
-        return text.replace(/グラス/g, "杯").replace(/ボトル/g, "瓶").replace(/ポット/g, "壶");
-      }
-      return text;
-    };
-
-    if (pr.includes("/")) {
-      const parts = pr.split("/");
-      prText = parts
-        .map((p) => {
-          let part = translatePriceTerm(p.trim());
-          const formatted = part.replace(/(\d[\d,]*)/g, "￥$1");
-          return `<div class="price">${formatted}</div>`;
-        })
-        .join("");
-    } else {
-      let part = translatePriceTerm(pr.trim());
-      const formatted = part.replace(/(\d[\d,]*)(?!\s*ml)/g, "￥$1");
-      prText = `<p class="price">${formatted}</p>`;
-    }
-  }
-
-  // === カテゴリ翻訳 ===
-  const catLabel = CATEGORY_TRANSLATION[currentLang]?.[cat] || cat;
-
-  // === HTML出力 ===
   return `
     <div class="menu-item">
       <div class="menu-img">${img}</div>
       <div class="menu-text">
         ${
           cat
-            ? `<div class="cat">${catLabel}${sub && sub !== cat ? " - " + sub : ""}</div>`
+            ? `<div class="cat">${translateCat(cat)}${sub && sub !== cat ? " - " + sub : ""}</div>`
             : ""
         }
         <h2>${title}</h2>
-        ${currentLang !== "jp" && jp ? `<div class="jp-sub">${jp}</div>` : ""}
+        ${lang !== "jp" && jpName ? `<div class="jp-sub">${jpName}</div>` : ""}
         ${takeBadge}
         <p>${desc}</p>
         ${noteHTML}
-        ${prText}
+        ${formatPrice(get(row, "Price"))}
       </div>
     </div>
   `;
-}
+};
 
-// === タブ描画（★onclick廃止：安全なイベント登録方式） ===
-function renderTabs(categories) {
-  const tabsEl = document.getElementById("tabs");
+const renderTabs = (cats) => {
+  const tabs = document.getElementById("tabs");
+  const ordered = CATEGORY_ORDER.filter((c) => cats.includes(c)).concat(cats.filter((c) => !CATEGORY_ORDER.includes(c)));
 
-  const ordered = CATEGORY_ORDER.filter((c) => categories.includes(c)).concat(
-    categories.filter((c) => !CATEGORY_ORDER.includes(c))
-  );
-
-  tabsEl.innerHTML = "";
-
-  ordered.forEach((cat) => {
-    const label = CATEGORY_TRANSLATION[currentLang]?.[cat] || cat;
-
-    const div = document.createElement("div");
-    div.className = "tab" + (cat === currentCategory ? " active" : "");
-    div.textContent = label;
-
-    div.addEventListener("click", () => showCategory(cat));
-    tabsEl.appendChild(div);
+  tabs.innerHTML = "";
+  ordered.forEach((c) => {
+    const el = document.createElement("div");
+    el.className = "tab" + (c === currentCategory ? " active" : "");
+    el.textContent = translateCat(c);
+    el.addEventListener("click", () => showCategory(c));
+    tabs.appendChild(el);
   });
-}
+};
 
-// === カテゴリ表示 ===
-function showCategory(cat) {
+const showCategory = (cat) => {
   currentCategory = cat;
 
-  const categories = [...new Set(allRows.map((r) => getCategory(r)))];
-  renderTabs(categories);
+  const cats = [...new Set(allRows.map(catOf))].filter(Boolean);
+  renderTabs(cats);
 
-  const filtered = allRows.filter((r) => getCategory(r) === cat);
+  const note = `
+    <div class="note">${t(
+      "※ 表示価格は税込みです。写真はイメージです。ご飯大盛りは160円です。",
+      "※ Prices include tax. Photos are for illustration only. Large rice +¥160.",
+      "※ 价格含税，图片仅供参考。加大饭需加160日元。"
+    )}</div>`;
 
-  const noteHTML = `
-    <div class="note">
-      ${
-        currentLang === "zh"
-          ? "※ 价格含税，图片仅供参考。加大饭需加160日元。"
-          : currentLang === "en"
-          ? "※ Prices include tax. Photos are for illustration only. Large rice +¥160."
-          : "※ 表示価格は税込みです。写真はイメージです。ご飯大盛りは160円です。"
-      }
-    </div>`;
+  document.getElementById("menu").innerHTML = note + allRows.filter((r) => catOf(r) === cat).map(cardHTML).join("");
+};
 
-  document.getElementById("menu").innerHTML = noteHTML + filtered.map(cardHTML).join("");
-}
-
-// === CSV読み込み ===
+// ===== load CSV =====
 Papa.parse(SHEET_CSV_URL, {
   download: true,
   header: true,
   skipEmptyLines: true,
   complete: (res) => {
-    // ✅ 中国語メニューは「準備中」表示して終了
-    if (currentLang === "zh") {
-      document.getElementById("header").innerHTML = `
-        <h1>一之屋 菜单<br><span class="en">鳗鱼料理专门店</span></h1>
-      `;
+    if (lang === "zh") {
+      document.getElementById("header").innerHTML = `<h1>一之屋 菜单<br><span class="en">鳗鱼料理专门店</span></h1>`;
       document.getElementById("menu").innerHTML = `
         <div class="note" style="text-align:center; padding:40px; font-size:1.1em;">
           <p>中文菜单正在制作中。</p>
           <p>Please check the Japanese or English menu.</p>
-        </div>
-      `;
+        </div>`;
       return;
     }
 
-    // ✅ 通常メニュー処理
     renderHeader();
 
-    allRows = (res.data || []).filter((r) => {
-      const vis = get(r, "Visible").trim().toLowerCase();
-      return !(vis && vis.match(/^(×|✗|x|no|0|false)$/i));
-    });
+    allRows = (res.data || []).filter(visibleRow);
+    const cats = [...new Set(allRows.map(catOf))].filter(Boolean);
 
-    const categories = [...new Set(allRows.map((r) => getCategory(r)))].filter(Boolean);
-    if (categories.length > 0) showCategory(categories[0]);
+    if (cats.length) showCategory(cats[0]);
     else document.getElementById("menu").innerHTML = "<p>メニューがありません。</p>";
   },
   error: () => {
