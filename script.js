@@ -31,18 +31,16 @@ function normalizeImageUrl(url) {
   if (!url) return "";
   const u = String(url).trim();
 
-  // 1) https://drive.google.com/file/d/FILE_ID/view?...
+  // Drive画像を確実に表示する用（thumbnail方式）
   const m1 = u.match(/\/file\/d\/([^/]+)/);
-  if (m1) return `https://drive.google.com/uc?export=view&id=${m1[1]}`;
+  if (m1) return `https://drive.google.com/thumbnail?id=${m1[1]}&sz=w1200`;
 
-  // 2) https://drive.google.com/open?id=FILE_ID
-  // 3) https://drive.google.com/uc?id=FILE_ID&export=download 等
   const m2 = u.match(/[?&]id=([^&]+)/);
-  if (m2) return `https://drive.google.com/uc?export=view&id=${m2[1]}`;
+  if (m2) return `https://drive.google.com/thumbnail?id=${m2[1]}&sz=w1200`;
 
-  // すでに直リンク or 外部URL
   return u;
 }
+
 
 // === カテゴリ翻訳辞書 ===
 const CATEGORY_TRANSLATION = {
