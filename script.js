@@ -9,7 +9,7 @@ const params = new URLSearchParams(window.location.search);
 const langParam = params.get("lang");
 let currentLang = ["jp", "en", "zh"].includes(langParam) ? langParam : "jp";
 
-// === 数値を日本円表記に ===
+// === 数値を日本円表記に（※今は未使用、必要ならPrice整形で使える） ===
 function yen(v) {
   const n = Number(v);
   return isNaN(n) ? v : n.toLocaleString("ja-JP");
@@ -25,6 +25,78 @@ function get(row, wanted) {
 function getCategory(row) {
   return get(row, "Group") || get(row, "Category");
 }
+
+// === Google Drive 共有リンク → 画像表示用URLに変換 ===
+function normalizeImageUrl(url) {
+  if (!url) return "";
+  const u = String(url).trim();
+
+  // 1) https://drive.google.com/file/d/FILE_ID/view?...
+  const m1 = u.match(/\/file\/d\/([^/]+)/);
+  if (m1) return `https://drive.google.com/uc?export=view&id=${m1[1]}`;
+
+  // 2) https://drive.google.com/open?id=FILE_ID
+  // 3) https://drive.google.com/uc?id=FILE_ID&export=download 等
+  const m2 = u.match(/[?&]id=([^&]+)/);
+  if (m2) return `https://drive.google.com/uc?export=view&id=${m2[1]}`;
+
+  // すでに直リンク or 外部URL
+  return u;
+}
+
+// === カテゴリ翻訳辞書 ===
+const CATEGORY_TRANSLATION = {
+  jp: {
+    "季節のお料理": "季節のお料理",
+    "うなぎ料理": "うなぎ料理",
+    "コース料理": "コース料理",
+    "お料理": "お料理",
+    "サラダ": "サラダ",
+    "ビール": "ビール",
+    "日本酒": "日本酒",
+    "焼酎": "焼酎",
+    "ウイスキー": "ウイスキー",
+    "サワー類": "サワー類",
+    "ジャパニーズジン": "ジャパニーズジン",
+    "ソフトドリンク": "ソフトドリンク",
+    "デザート": "デザート",
+    "その他": "その他",
+  },
+  en: {
+    "季節のお料理": "Seasonal Dishes",
+    "うなぎ料理": "Unagi Dishes",
+    "コース料理": "Course Meals",
+    "お料理": "Dishes",
+    "サラダ": "Salads",
+    "ビール": "Beer",
+    "日本酒": "Sake",
+    "焼酎": "Shochu",
+    "ウイスキー": "Whisky",
+    "サワー類": "Sours",
+    "ジャパニーズジン": "Japanese Gin",
+    "ソフトドリンク": "Soft Drinks",
+    "デザート": "Dessert",
+    "その他": "Others",
+  },
+  zh: {}, // 現状は準備中表示なので未使用
+};
+
+// === カテゴリ順序 ===
+const CATEGORY_ORDER = [
+  "季節のお料理",
+  "うなぎ料理",
+  "コース料理",
+  "お料理",
+  "サラダ",
+  "ビール",
+  "日本酒",
+  "焼酎",
+  "ウイスキー",
+  "サワー類",
+  "ジャパニーズジン",
+  "ソフトドリンク",
+  "デザート",
+];
 
 // === ヘッダー切り替え ===
 function renderHeader() {
@@ -62,8 +134,11 @@ function cardHTML(row) {
   const imgU = get(row, "Image URL");
   const take = get(row, "Takeout");
 
-  // === 画像 ===
-  const img = imgU ? `<img src="${imgU}" alt="${en || jp || ""}">` : "";
+  // === 画像（Drive対応 + 遅延読み込み + エラー時の保険） ===
+  const imgSrc = normalizeImageUrl(imgU);
+  const img = imgSrc
+    ? `<img src="${imgSrc}" loading="lazy" alt="${en || jp || ""}" onerror="this.style.display='none'">`
+    : "";
 
   // === テイクアウトバッジ ===
   const takeBadge =
@@ -78,34 +153,24 @@ function cardHTML(row) {
       : "";
 
   // === タイトル・説明 ===
-  const title =
-    currentLang === "zh" ? zh : currentLang === "en" ? en : jp;
-  const desc =
-    currentLang === "zh" ? dzh : currentLang === "en" ? den : djp;
+  const title = currentLang === "zh" ? zh : currentLang === "en" ? en : jp;
+  const desc = currentLang === "zh" ? dzh : currentLang === "en" ? den : djp;
 
   // === 備考欄（日本語のみ） ===
   let noteHTML = "";
   if (currentLang === "jp") {
     const njp = get(row, "Note (JP)");
-    if (njp) {
-      noteHTML = `<p class="note-sub">${njp}</p>`;
-    }
+    if (njp) noteHTML = `<p class="note-sub">${njp}</p>`;
   }
 
-  // === 価格整形（グラス / ボトル / ポット / 容量対応） ===
+  // === 価格整形（既存ロジックを維持） ===
   let prText = "";
   if (pr) {
     const translatePriceTerm = (text) => {
       if (currentLang === "en") {
-        return text
-          .replace(/グラス/g, "Glass")
-          .replace(/ボトル/g, "Bottle")
-          .replace(/ポット/g, "Pot");
+        return text.replace(/グラス/g, "Glass").replace(/ボトル/g, "Bottle").replace(/ポット/g, "Pot");
       } else if (currentLang === "zh") {
-        return text
-          .replace(/グラス/g, "杯")
-          .replace(/ボトル/g, "瓶")
-          .replace(/ポット/g, "壶");
+        return text.replace(/グラス/g, "杯").replace(/ボトル/g, "瓶").replace(/ポット/g, "壶");
       }
       return text;
     };
@@ -136,9 +201,7 @@ function cardHTML(row) {
       <div class="menu-text">
         ${
           cat
-            ? `<div class="cat">${catLabel}${
-                sub && sub !== cat ? " - " + sub : ""
-              }</div>`
+            ? `<div class="cat">${catLabel}${sub && sub !== cat ? " - " + sub : ""}</div>`
             : ""
         }
         <h2>${title}</h2>
@@ -152,81 +215,35 @@ function cardHTML(row) {
   `;
 }
 
-// === カテゴリ翻訳辞書 ===
-const CATEGORY_TRANSLATION = {
-  jp: {
-    "季節のお料理": "季節のお料理",
-    "うなぎ料理": "うなぎ料理",
-    "コース料理": "コース料理",
-    "お料理": "お料理",
-    "サラダ": "サラダ",
-    "ビール": "ビール",
-    "日本酒": "日本酒",
-    "焼酎": "焼酎",
-    "ウイスキー": "ウイスキー",
-    "サワー類": "サワー類",
-    "ジャパニーズジン": "ジャパニーズジン",
-    "ソフトドリンク": "ソフトドリンク",
-    "デザート": "デザート",
-    "その他": "その他",
-  },
-  en: {
-    "季節のお料理": "Seasonal Dishes",
-    "うなぎ料理": "Unagi Dishes",
-    "コース料理": "Course Meals",
-    "お料理": "Dishes",
-    "サラダ": "Salads",
-    "ビール": "Beer",
-    "日本酒": "Sake",
-    "焼酎": "Shochu",
-    "ウイスキー": "Whisky",
-    "サワー類": "Sours",
-    "ジャパニーズジン": "Japanese Gin",
-    "ソフトドリンク": "Soft Drinks",
-    "デザート": "Dessert",
-    "その他": "Others",
-  },
-  zh: {}, // ← 今は未使用
-};
-
-// === カテゴリ順序 ===
-const CATEGORY_ORDER = [
-  "季節のお料理",
-  "うなぎ料理",
-  "コース料理",
-  "お料理",
-  "サラダ",
-  "ビール",
-  "日本酒",
-  "焼酎",
-  "ウイスキー",
-  "サワー類",
-  "ジャパニーズジン",
-  "ソフトドリンク",
-  "デザート",
-];
-
-// === タブ描画 ===
+// === タブ描画（★onclick廃止：安全なイベント登録方式） ===
 function renderTabs(categories) {
   const tabsEl = document.getElementById("tabs");
+
   const ordered = CATEGORY_ORDER.filter((c) => categories.includes(c)).concat(
     categories.filter((c) => !CATEGORY_ORDER.includes(c))
   );
 
-  tabsEl.innerHTML = ordered
-    .map((cat) => {
-      const label = CATEGORY_TRANSLATION[currentLang]?.[cat] || cat;
-      return `<div class="tab ${
-        cat === currentCategory ? "active" : ""
-      }" onclick="showCategory('${cat}')">${label}</div>`;
-    })
-    .join("");
+  tabsEl.innerHTML = "";
+
+  ordered.forEach((cat) => {
+    const label = CATEGORY_TRANSLATION[currentLang]?.[cat] || cat;
+
+    const div = document.createElement("div");
+    div.className = "tab" + (cat === currentCategory ? " active" : "");
+    div.textContent = label;
+
+    div.addEventListener("click", () => showCategory(cat));
+    tabsEl.appendChild(div);
+  });
 }
 
 // === カテゴリ表示 ===
 function showCategory(cat) {
   currentCategory = cat;
-  renderTabs([...new Set(allRows.map((r) => getCategory(r)))]);
+
+  const categories = [...new Set(allRows.map((r) => getCategory(r)))];
+  renderTabs(categories);
+
   const filtered = allRows.filter((r) => getCategory(r) === cat);
 
   const noteHTML = `
@@ -240,8 +257,7 @@ function showCategory(cat) {
       }
     </div>`;
 
-  document.getElementById("menu").innerHTML =
-    noteHTML + filtered.map(cardHTML).join("");
+  document.getElementById("menu").innerHTML = noteHTML + filtered.map(cardHTML).join("");
 }
 
 // === CSV読み込み ===
@@ -250,7 +266,7 @@ Papa.parse(SHEET_CSV_URL, {
   header: true,
   skipEmptyLines: true,
   complete: (res) => {
-    // ✅ 中国語メニューは「準備中」メッセージを表示して終了
+    // ✅ 中国語メニューは「準備中」表示して終了
     if (currentLang === "zh") {
       document.getElementById("header").innerHTML = `
         <h1>一之屋 菜单<br><span class="en">鳗鱼料理专门店</span></h1>
@@ -267,16 +283,16 @@ Papa.parse(SHEET_CSV_URL, {
     // ✅ 通常メニュー処理
     renderHeader();
 
-    allRows = res.data.filter((r) => {
+    allRows = (res.data || []).filter((r) => {
       const vis = get(r, "Visible").trim().toLowerCase();
       return !(vis && vis.match(/^(×|✗|x|no|0|false)$/i));
     });
 
-    const categories = [...new Set(allRows.map((r) => getCategory(r)))];
+    const categories = [...new Set(allRows.map((r) => getCategory(r)))].filter(Boolean);
     if (categories.length > 0) showCategory(categories[0]);
+    else document.getElementById("menu").innerHTML = "<p>メニューがありません。</p>";
   },
   error: () => {
-    document.getElementById("menu").innerHTML =
-      "<p>メニューの読み込みに失敗しました。</p>";
+    document.getElementById("menu").innerHTML = "<p>メニューの読み込みに失敗しました。</p>";
   },
 });
