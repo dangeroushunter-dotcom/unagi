@@ -2,15 +2,18 @@
 const SHEET_CSV_URL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vR7Rdo_eCMQF-HTxCjdZJDx6z8OQnYjc0WTVwuc_N6TNYpdwfFy5DLRmW35gbLZklPcuSGxmmGfafeT/pub?output=csv";
 
-#csvから読み込んだメニュー業
-#表示中のカテゴリ名
+#csvから読み込んだメニュー表の各行を配列にする
+#いまどのカテゴリのタブを選んでいるか覚える
 let allRows = [];
 let currentCategory = "";
 
 #即実行関数(その場1回だけ実行)
-#location.
+#location.serch:URL内のクエリ情報を抽出して取得するlocation.search === "?lang=en"
+#クエリ:特定のデータを取得するためにシステムに送信される質問や指示
+#get("lang")でその中のlangの値を取り出す
 const lang = (() => {
   const p = new URLSearchParams(location.search).get("lang");
+  #pがjp,en,zhのどれかならpを，それ以外かNULLならjp
   return ["jp", "en", "zh"].includes(p) ? p : "jp";
 })();
 
