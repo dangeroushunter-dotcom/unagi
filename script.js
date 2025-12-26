@@ -13,7 +13,7 @@ let currentCategory = "";
 //get("lang")でその中のlangの値を取り出す
 const lang = (() => {
   const p = new URLSearchParams(location.search).get("lang");
-  #pがjp,en,zhのどれかならpを，それ以外かNULLならjp
+  //pがjp,en,zhのどれかならpを，それ以外かNULLならjp
   return ["jp", "en", "zh"].includes(p) ? p : "jp";
 })();
 
