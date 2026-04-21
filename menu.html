@@ -8,18 +8,18 @@
   <style>
     body {
       font-family: "Hiragino Mincho ProN", "Yu Mincho", serif;
-      background: #f8f4e6;
+      background: #111; /* 黒背景 */
       margin: 0;
-      color: #333;
+      color: #e8e4dc;
       writing-mode: horizontal-tb;
     }
 
     header {
       text-align: center;
-      background: #2a1c15;
-      color: #f8f4e6;
+      background: #000;
+      color: #e8e4dc;
       padding: 24px 12px;
-      border-bottom: 4px solid #8a3b32;
+      border-bottom: 2px solid #8a3b32;
     }
     header h1 {
       margin: 0;
@@ -31,7 +31,7 @@
     header .en {
       font-family: "Yu Gothic", "Hiragino Sans", sans-serif;
       font-size: 0.85em;
-      color: #d8cbb8;
+      color: #999;
       display: block;
       margin-top: 4px;
     }
@@ -40,10 +40,10 @@
     .tabs-wrapper {
       position: sticky;
       top: 0;
-      background: rgba(248, 244, 230, 0.95);
+      background: rgba(17, 17, 17, 0.95);
       z-index: 10;
-      border-bottom: 1px solid #d8cbb8;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+      border-bottom: 1px solid #333;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
     }
 
     .tabs {
@@ -70,10 +70,10 @@
       flex: 0 0 auto;
       text-align: center;
       padding: 8px 16px;
-      border: 1px solid #8a3b32;
+      border: 1px solid #555;
       border-radius: 4px;
-      background: #fff;
-      color: #8a3b32;
+      background: #222;
+      color: #ccc;
       cursor: pointer;
       font-size: 0.95rem;
       transition: all 0.25s ease;
@@ -84,6 +84,7 @@
     .tab.active {
       background: #8a3b32;
       color: #fff;
+      border-color: #8a3b32;
     }
 
     /* ===== メニューカード ===== */
@@ -96,12 +97,12 @@
     .menu-item {
       display: flex;
       gap: 24px;
-      background: #fff;
-      border: 1px solid #e2d8ce;
+      background: #1a1a1a;
+      border: 1px solid #333;
       border-radius: 6px;
       padding: 20px;
       margin: 16px 0;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
       align-items: center;
     }
 
@@ -114,8 +115,8 @@
       justify-content: center;
       border-radius: 4px;
       overflow: hidden;
-      background: #fdfdfd;
-      border: 1px solid #f0e9e1;
+      background: #222;
+      border: 1px solid #444;
     }
 
     .menu-img img {
@@ -125,12 +126,17 @@
       display: block;
     }
 
-    .no-img-text {
-      color: #b0a090;
-      font-size: 0.9em;
-      text-align: center;
+    .no-img-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       width: 100%;
-      padding: 20px;
+      height: 100%;
+      background-color: #222;
+      color: #777;
+      font-size: 0.9rem;
+      gap: 8px;
       font-family: "Yu Gothic", "Hiragino Sans", sans-serif;
     }
 
@@ -143,12 +149,12 @@
       font-family: "Hiragino Mincho ProN", "Yu Mincho", serif;
       margin: 0 0 8px 0;
       font-size: 1.4rem;
-      color: #2a1c15;
+      color: #e8e4dc;
     }
 
     .cat {
-      background: #e2d8ce;
-      color: #3e2b22;
+      background: #333;
+      color: #dcd3c6;
       padding: 4px 10px;
       border-radius: 2px;
       display: inline-block;
@@ -161,7 +167,7 @@
       margin: 8px 0;
       line-height: 1.6;
       font-size: 0.95rem;
-      color: #444;
+      color: #aaa;
     }
 
     /* ====== 金額・ボトルの文字等のレイアウト ====== */
@@ -178,26 +184,24 @@
       gap: 8px;
     }
 
-    /* 「グラス」などの文字用スタイル */
     .price-label {
       font-size: 0.9rem;
-      color: #666;
+      color: #888;
       font-weight: normal;
       font-family: "Yu Gothic", "Hiragino Sans", sans-serif;
     }
 
-    /* 「￥660」などの数字用スタイル */
     .price-value {
       font-weight: bold;
-      color: #8a3b32;
+      color: #d45d50; /* 黒背景で映える少し明るめの臙脂 */
       font-size: 1.25rem;
       font-family: "Hiragino Mincho ProN", "Yu Mincho", serif;
     }
 
     .takeout-badge {
-      background: #fdf5f5;
-      color: #8a3b32;
-      border: 1px solid #8a3b32;
+      background: #3a2222;
+      color: #d45d50;
+      border: 1px solid #d45d50;
       padding: 2px 8px;
       border-radius: 2px;
       font-size: 0.75em;
@@ -208,22 +212,23 @@
     .note {
       text-align: center;
       font-size: 0.9em;
-      color: #666;
+      color: #888;
       margin: 10px 0 30px;
       font-family: "Yu Gothic", "Hiragino Sans", sans-serif;
     }
 
     .drink-note {
       text-align: center;
-      color: #8a3b32;
-      font-weight: bold;
-      margin: -10px auto 20px;
-      padding: 12px;
-      background: #fdf5f5;
-      border: 1px solid #eccaca;
-      border-radius: 4px;
+      color: #dcd3c6;
+      margin: 10px auto 30px;
+      padding: 16px;
+      background: #1a1a1a;
+      border-top: 1px solid #8a3b32;
+      border-bottom: 1px solid #8a3b32;
       font-size: 0.95rem;
-      font-family: "Yu Gothic", "Hiragino Sans", sans-serif;
+      font-family: "Hiragino Mincho ProN", "Yu Mincho", serif;
+      letter-spacing: 0.05em;
+      max-width: 600px;
     }
 
     .jp-sub {
@@ -235,12 +240,57 @@
 
     .note-sub {
       font-size: 0.85em;
-      color: #8a3b32;
+      color: #d48b8b;
       margin-top: 8px;
       line-height: 1.4;
-      background: #fffafa;
+      background: #2a1c1a;
       padding: 8px;
       border-left: 3px solid #8a3b32;
+    }
+
+    /* ====== チュートリアル（初回のみ表示） ====== */
+    #tutorial {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0, 0, 0, 0.85);
+      z-index: 99999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-family: "Yu Gothic", "Hiragino Sans", sans-serif;
+      transition: opacity 0.5s ease;
+    }
+    #tutorial.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    
+    .tut-block {
+      text-align: center;
+      margin: 30px 0;
+      animation: bounce 2s infinite;
+    }
+    .tut-icon { font-size: 2.5rem; margin-bottom: 10px; }
+    .tut-text { font-size: 1.1rem; letter-spacing: 0.05em; line-height: 1.5; }
+    
+    .tut-btn {
+      margin-top: 40px;
+      background: #8a3b32;
+      color: #fff;
+      border: none;
+      padding: 14px 40px;
+      font-size: 1.2rem;
+      border-radius: 4px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    }
+
+    @keyframes bounce {
+      0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+      40% { transform: translateY(-15px); }
+      60% { transform: translateY(-7px); }
     }
 
     /* ===== スマホ用レイアウト調整 ===== */
@@ -264,6 +314,18 @@
 </head>
 
 <body>
+  <div id="tutorial" class="hidden">
+    <div class="tut-block">
+      <div class="tut-icon">👈 👉</div>
+      <div class="tut-text" id="tut-msg1">カテゴリは横にスワイプできます</div>
+    </div>
+    <div class="tut-block" style="animation-delay: 0.5s;">
+      <div class="tut-icon">👇</div>
+      <div class="tut-text" id="tut-msg2">下にスクロールして<br>メニューをご覧ください</div>
+    </div>
+    <button class="tut-btn" id="tut-close">OK</button>
+  </div>
+
   <header id="header"></header>
 
   <div class="tabs-wrapper">
@@ -271,5 +333,31 @@
   </div>
   
   <div class="wrap" id="menu"></div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const p = new URLSearchParams(location.search).get("lang") || "jp";
+      if (p === "en") {
+        document.getElementById("tut-msg1").innerHTML = "Swipe horizontally<br>to change categories";
+        document.getElementById("tut-msg2").innerHTML = "Scroll down<br>to view the menu";
+      } else if (p === "zh") {
+        document.getElementById("tut-msg1").innerHTML = "左右滑动切换分类";
+        document.getElementById("tut-msg2").innerHTML = "向下滑动查看菜单";
+      }
+
+      const tut = document.getElementById("tutorial");
+      const isTutDone = localStorage.getItem("ichinoya_tutorial_done");
+      
+      // 初回アクセスの時だけチュートリアルを表示する
+      if (!isTutDone) {
+        tut.classList.remove("hidden");
+      }
+
+      document.getElementById("tut-close").addEventListener("click", () => {
+        tut.classList.add("hidden");
+        localStorage.setItem("ichinoya_tutorial_done", "true");
+      });
+    });
+  </script>
 </body>
 </html>
