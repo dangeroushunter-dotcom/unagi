@@ -97,11 +97,11 @@
       display: flex;
       gap: 24px;
       background: #fff;
-      border: 1px solid #e2d8ce;
+      border: 1px solid #dcd3c6;
       border-radius: 6px;
       padding: 20px;
       margin: 16px 0;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
       align-items: center;
     }
 
@@ -114,8 +114,8 @@
       justify-content: center;
       border-radius: 4px;
       overflow: hidden;
-      background: #fdfdfd;
-      border: 1px solid #f0e9e1;
+      background: #fff;
+      border: 1px solid #ece4d9;
     }
 
     .menu-img img {
@@ -125,12 +125,18 @@
       display: block;
     }
 
-    .no-img-text {
-      color: #b0a090;
-      font-size: 0.9em;
-      text-align: center;
+    /* ★画像準備中のデザインを綺麗に！ */
+    .no-img-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       width: 100%;
-      padding: 20px;
+      height: 100%;
+      background-color: #f4f0e8; /* 落ち着いたグレーベージュ */
+      color: #a09587;
+      font-size: 0.9rem;
+      gap: 8px;
       font-family: "Yu Gothic", "Hiragino Sans", sans-serif;
     }
 
@@ -178,7 +184,6 @@
       gap: 8px;
     }
 
-    /* 「グラス」などの文字用スタイル */
     .price-label {
       font-size: 0.9rem;
       color: #666;
@@ -186,7 +191,6 @@
       font-family: "Yu Gothic", "Hiragino Sans", sans-serif;
     }
 
-    /* 「￥660」などの数字用スタイル */
     .price-value {
       font-weight: bold;
       color: #8a3b32;
@@ -213,17 +217,20 @@
       font-family: "Yu Gothic", "Hiragino Sans", sans-serif;
     }
 
+    /* ★お酒の割り方のデザインを料亭風の高級感あるものに！ */
     .drink-note {
       text-align: center;
-      color: #8a3b32;
-      font-weight: bold;
-      margin: -10px auto 20px;
-      padding: 12px;
-      background: #fdf5f5;
-      border: 1px solid #eccaca;
-      border-radius: 4px;
+      color: #4a3324;
+      margin: 10px auto 30px;
+      padding: 16px;
+      background: #fffdf9;
+      border-top: 2px solid #8a3b32;
+      border-bottom: 2px solid #8a3b32;
       font-size: 0.95rem;
-      font-family: "Yu Gothic", "Hiragino Sans", sans-serif;
+      font-family: "Hiragino Mincho ProN", "Yu Mincho", serif;
+      letter-spacing: 0.05em;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+      max-width: 600px;
     }
 
     .jp-sub {
