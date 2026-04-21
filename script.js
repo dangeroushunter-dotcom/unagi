@@ -129,7 +129,6 @@ const formatPrice = (pr) => {
 
   const formatSinglePrice = (s) => {
     let text = tr(s.trim());
-    // 文字列から「数字（金額）」だけを抜き出し、前後の文字（グラス等）と切り分ける
     const match = text.match(/(.*?)(\d[\d,]*)(?!\s*ml)(.*)/);
     
     if (match) {
@@ -139,7 +138,6 @@ const formatPrice = (pr) => {
       
       return `${beforeLabel}<span class="price-value">￥${priceNum}</span>${afterLabel}`;
     }
-    // 金額が含まれていない場合はそのまま表示
     return `<span class="price-label">${text}</span>`;
   };
 
@@ -164,9 +162,13 @@ const cardHTML = (row) => {
   const imgSrc = normalizeImageUrl(get(row, "Image URL"));
   const noImgText = t("画像準備中", "Image Coming Soon", "图片准备中");
   
+  // 黒背景に合うダークグレーのSVGアイコン付きプレースホルダー
+  const noImgSVG = `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>`;
+  const placeholderHTML = `<div class="no-img-placeholder">${noImgSVG}<span>${noImgText}</span></div>`;
+
   const imgContent = imgSrc
-    ? `<img src="${imgSrc}" loading="lazy" alt="${get(row, "Name (EN)") || jpName}" onerror="this.parentElement.innerHTML='<div class=\\'no-img-text\\'>${noImgText}</div>'">`
-    : `<div class="no-img-text">${noImgText}</div>`;
+    ? `<img src="${imgSrc}" loading="lazy" alt="${get(row, "Name (EN)") || jpName}" onerror="this.parentElement.innerHTML='${placeholderHTML.replace(/'/g, "\\'")}'">`
+    : placeholderHTML;
 
   const take = get(row, "Takeout");
   const takeBadge =
@@ -234,9 +236,9 @@ const showCategory = (cat) => {
     drinkNote = `
       <div class="drink-note">
         ${t(
-          "※ ロック、水割り、お湯割り、ソーダ割からお選びください。",
-          "※ Please choose from: On the rocks, With water, With hot water, or With soda.",
-          "※ 请选择：加冰、加水、加热水或加苏打水。"
+          "※ ロック、水割り、お湯割り、ソーダ割からお選びください",
+          "※ Please choose from: On the rocks, With water, With hot water, or With soda",
+          "※ 请选择：加冰、加水、加热水或加苏打水"
         )}
       </div>`;
   }
