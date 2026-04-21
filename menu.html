@@ -8,53 +8,42 @@
   <style>
     body {
       font-family: "Hiragino Mincho ProN", "Yu Mincho", serif;
-      background: #111; /* 黒背景 */
+      background: #f8f4e6;
       margin: 0;
-      color: #e8e4dc;
+      color: #333;
+      writing-mode: horizontal-tb;
     }
 
     header {
       text-align: center;
-      background: #000;
+      background: #2a1c15;
+      color: #f8f4e6;
       padding: 24px 12px;
-      border-bottom: 2px solid #8a3b32;
+      border-bottom: 4px solid #8a3b32;
     }
     header h1 {
       margin: 0;
-      font-size: 1.6rem;
+      line-height: 1.4;
       font-weight: normal;
+      font-size: 1.6rem;
+      letter-spacing: 0.05em;
     }
     header .en {
-      font-family: sans-serif;
+      font-family: "Yu Gothic", "Hiragino Sans", sans-serif;
       font-size: 0.85em;
-      color: #999;
+      color: #d8cbb8;
       display: block;
+      margin-top: 4px;
     }
 
-    /* ===== カテゴリタブ部分 ===== */
+    /* ===== タブ部分 ===== */
     .tabs-wrapper {
       position: sticky;
       top: 0;
-      background: #111;
+      background: rgba(248, 244, 230, 0.95);
       z-index: 10;
-      border-bottom: 1px solid #333;
-      transition: all 0.3s ease;
-    }
-
-    /* ★チュートリアル1段目：カテゴリをハイライト（明るく）する */
-    .tabs-wrapper.highlight-step1 {
-      z-index: 100000 !important;
-      background: #fff !important; /* 背景を白くして目立たせる */
-      box-shadow: 0 0 0 100vh rgba(0,0,0,0.85); /* 周囲を暗転 */
-    }
-    .tabs-wrapper.highlight-step1 .tab {
-      border-color: #8a3b32;
-      color: #8a3b32;
-      background: #eee;
-    }
-    .tabs-wrapper.highlight-step1 .tab.active {
-      background: #8a3b32;
-      color: #fff;
+      border-bottom: 1px solid #d8cbb8;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
     }
 
     .tabs {
@@ -62,39 +51,57 @@
       gap: 12px;
       padding: 12px 16px;
       overflow-x: auto;
+      overflow-y: hidden;
       white-space: nowrap;
       -webkit-overflow-scrolling: touch;
       max-width: 1100px;
       margin: 0 auto;
     }
-    .tabs::-webkit-scrollbar { display: none; }
+
+    .tabs::-webkit-scrollbar {
+      display: none;
+    }
+    .tabs {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
 
     .tab {
       flex: 0 0 auto;
+      text-align: center;
       padding: 8px 16px;
-      border: 1px solid #555;
+      border: 1px solid #8a3b32;
       border-radius: 4px;
-      background: #222;
-      color: #ccc;
+      background: #fff;
+      color: #8a3b32;
+      cursor: pointer;
       font-size: 0.95rem;
+      transition: all 0.25s ease;
+      user-select: none;
+      font-family: "Yu Gothic", "Hiragino Sans", sans-serif;
     }
+
     .tab.active {
       background: #8a3b32;
       color: #fff;
-      border-color: #8a3b32;
     }
 
-    /* ===== メニュー項目 ===== */
-    .wrap { max-width: 900px; margin: 0 auto; padding: 20px 16px; }
+    /* ===== メニューカード ===== */
+    .wrap {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px 16px;
+    }
 
     .menu-item {
       display: flex;
       gap: 24px;
-      background: #1a1a1a;
-      border: 1px solid #333;
+      background: #fff;
+      border: 1px solid #e2d8ce;
       border-radius: 6px;
       padding: 20px;
       margin: 16px 0;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
       align-items: center;
     }
 
@@ -102,64 +109,133 @@
       flex-shrink: 0;
       width: 200px;
       aspect-ratio: 4 / 3;
-      background: #222;
       display: flex;
       align-items: center;
       justify-content: center;
-      overflow: hidden;
       border-radius: 4px;
+      overflow: hidden;
+      background: #fdfdfd;
+      border: 1px solid #f0e9e1;
     }
-    .menu-img img { width: 100%; height: 100%; object-fit: contain; }
 
-    /* 画像準備中の表示用 */
-    .no-img-placeholder {
+    .menu-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .menu-text {
+      flex: 1;
+      font-family: "Yu Gothic", "Hiragino Sans", sans-serif;
+    }
+
+    .menu-text h2 {
+      font-family: "Hiragino Mincho ProN", "Yu Mincho", serif;
+      margin: 0 0 8px 0;
+      font-size: 1.4rem;
+      color: #2a1c15;
+    }
+
+    .cat {
+      background: #e2d8ce;
+      color: #3e2b22;
+      padding: 4px 10px;
+      border-radius: 2px;
+      display: inline-block;
+      font-size: 0.75em;
+      margin-bottom: 10px;
+      letter-spacing: 0.05em;
+    }
+
+    .menu-text p {
+      margin: 8px 0;
+      line-height: 1.6;
+      font-size: 0.95rem;
+      color: #444;
+    }
+
+    .price-container { margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+    .price-line { display: flex; align-items: baseline; gap: 8px; }
+    .price-label { font-size: 0.9rem; color: #666; font-weight: normal; font-family: "Yu Gothic", "Hiragino Sans", sans-serif; }
+    .price-value { font-weight: bold; color: #8a3b32; font-size: 1.25rem; font-family: "Hiragino Mincho ProN", "Yu Mincho", serif; }
+
+    .takeout-badge { background: #fdf5f5; color: #8a3b32; border: 1px solid #8a3b32; padding: 2px 8px; border-radius: 2px; font-size: 0.75em; display: inline-block; margin-bottom: 8px; }
+    .note { text-align: center; font-size: 0.9em; color: #666; margin: 10px 0 30px; font-family: "Yu Gothic", "Hiragino Sans", sans-serif; }
+    
+    .drink-note {
+      text-align: center; color: #8a3b32; font-weight: bold; margin: -10px auto 20px; padding: 12px;
+      background: #fdf5f5; border: 1px solid #eccaca; border-radius: 4px; font-size: 0.95rem; font-family: "Yu Gothic", "Hiragino Sans", sans-serif;
+    }
+
+    .jp-sub { font-size: 0.9em; color: #777; margin-bottom: 8px; font-family: "Hiragino Mincho ProN", "Yu Mincho", serif; }
+    .note-sub { font-size: 0.85em; color: #8a3b32; margin-top: 8px; line-height: 1.4; background: #fffafa; padding: 8px; border-left: 3px solid #8a3b32; }
+
+
+    /* ====== チュートリアル（暗転なし・吹き出し風） ====== */
+    #tutorial {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      z-index: 99999;
+      pointer-events: none; /* コンテナ全体はタッチを邪魔しないようにする */
+    }
+    #tutorial.hidden {
+      display: none;
+    }
+
+    .tut-step {
+      position: absolute;
+      width: 100%;
       display: flex;
       flex-direction: column;
       align-items: center;
-      color: #666;
-      font-size: 0.8rem;
+      color: #8a3b32;
+      font-family: "Yu Gothic", "Hiragino Sans", sans-serif;
+      pointer-events: none;
+    }
+    .tut-step.hidden { display: none; }
+
+    #tut-step2 {
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .tut-block {
       text-align: center;
+      animation: bounce 2s infinite;
+      /* 背景がない代わりに吹き出しのようにして読みやすくする */
+      background: rgba(255, 255, 255, 0.95);
+      padding: 15px 30px;
+      border-radius: 12px;
+      border: 2px solid #8a3b32;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+      pointer-events: auto; /* ★ここだけタップ可能にする（バグ回避） */
     }
 
-    .menu-text { flex: 1; }
-    .menu-text h2 { margin: 0 0 8px; font-size: 1.4rem; color: #e8e4dc; }
-    .cat { background: #333; padding: 4px 10px; font-size: 0.75em; display: inline-block; margin-bottom: 8px; }
-    .price-container { margin-top: 12px; }
-    .price-line { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; }
-    .price-label { font-size: 0.9rem; color: #888; }
-    .price-value { font-weight: bold; color: #d45d50; font-size: 1.2rem; }
-
-    /* ===== チュートリアル表示 ===== */
-    #tutorial {
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      z-index: 99999;
-      pointer-events: none;
-    }
-    #tutorial.hidden { display: none; }
-    .tut-overlay {
-      position: absolute; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.8);
-      pointer-events: auto;
-    }
-    .tut-content {
-      position: absolute; width: 100%; text-align: center; color: #fff;
-      pointer-events: none;
-    }
+    .tut-icon { font-size: 2.2rem; margin-bottom: 5px; }
+    .tut-text { font-size: 1.1rem; letter-spacing: 0.05em; line-height: 1.5; font-weight: bold; }
+    
     .tut-btn {
-      background: #8a3b32; color: #fff; border: none; padding: 12px 30px;
-      border-radius: 4px; margin-top: 20px; cursor: pointer; pointer-events: auto;
+      margin-top: 15px;
+      background: #8a3b32;
+      color: #fff;
+      border: none;
+      padding: 10px 30px;
+      font-size: 1.1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
     }
-    .tut-msg { font-size: 1.1rem; line-height: 1.6; text-shadow: 0 2px 4px #000; animation: bounce 2s infinite; }
 
     @keyframes bounce {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
+      0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+      40% { transform: translateY(-10px); }
+      60% { transform: translateY(-5px); }
     }
 
     @media (max-width: 720px) {
-      .menu-item { flex-direction: column; }
-      .menu-img { width: 100%; aspect-ratio: 16 / 9; }
+      .menu-item { flex-direction: column; align-items: flex-start; padding: 16px; gap: 16px; }
+      .menu-img { width: 100%; margin: 0 auto; aspect-ratio: 16 / 9; }
     }
   </style>
 
@@ -169,59 +245,73 @@
 
 <body>
   <div id="tutorial" class="hidden">
-    <div id="tut-overlay" class="tut-overlay"></div>
-    
-    <div id="tut-step1" class="tut-content">
-      <div class="tut-msg">👈 カテゴリは横にスワイプできます 👉</div>
-      <button class="tut-btn" id="btn-next">次へ</button>
+    <div id="tut-step1" class="tut-step">
+      <div class="tut-block">
+        <div class="tut-icon">👈 👉</div>
+        <div class="tut-text" id="tut-msg1">カテゴリは横にスワイプできます</div>
+        <button class="tut-btn" id="tut-next">次へ</button>
+      </div>
     </div>
 
-    <div id="tut-step2" class="tut-content hidden" style="top: 50%; transform: translateY(-50%);">
-      <div class="tut-msg">👇 下にスクロールして<br>メニューをご覧ください</div>
-      <button class="tut-btn" id="btn-close">OK</button>
+    <div id="tut-step2" class="tut-step hidden">
+      <div class="tut-block">
+        <div class="tut-icon">👇</div>
+        <div class="tut-text" id="tut-msg2">下にスクロールして<br>メニューをご覧ください</div>
+        <button class="tut-btn" id="tut-close">OK</button>
+      </div>
     </div>
   </div>
 
   <header id="header"></header>
-
-  <div class="tabs-wrapper" id="tabs-wrapper">
-    <div class="tabs" id="tabs"></div>
-  </div>
-  
+  <div class="tabs-wrapper"><div class="tabs" id="tabs"></div></div>
   <div class="wrap" id="menu"></div>
 
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      const isDone = localStorage.getItem("ichinoya_tut_v2");
-      if (isDone) return;
+      // 言語判定
+      const p = new URLSearchParams(location.search).get("lang") || "jp";
+      if (p === "en") {
+        document.getElementById("tut-msg1").innerHTML = "Swipe horizontally<br>to change categories";
+        document.getElementById("tut-msg2").innerHTML = "Scroll down<br>to view the menu";
+        document.getElementById("tut-next").innerText = "Next";
+      } else if (p === "zh") {
+        document.getElementById("tut-msg1").innerHTML = "左右滑动切换分类";
+        document.getElementById("tut-msg2").innerHTML = "向下滑动查看菜单";
+        document.getElementById("tut-next").innerText = "下一步";
+      }
 
       const tut = document.getElementById("tutorial");
-      const overlay = document.getElementById("tut-overlay");
-      const wrapper = document.getElementById("tabs-wrapper");
       const step1 = document.getElementById("tut-step1");
       const step2 = document.getElementById("tut-step2");
+      const tabsWrapper = document.querySelector(".tabs-wrapper");
+      
+      const isTutDone = localStorage.getItem("ichinoya_tut_v5"); // 履歴キーを更新
+      
+      // 初回のみ表示
+      if (!isTutDone) {
+        tut.classList.remove("hidden");
+        
+        // タブのすぐ下に「横スワイプ」を配置
+        setTimeout(() => {
+          if (tabsWrapper) {
+            const rect = tabsWrapper.getBoundingClientRect();
+            step1.style.top = (rect.bottom + 20) + "px";
+          } else {
+            step1.style.top = "100px";
+          }
+        }, 500);
+      }
 
-      tut.classList.remove("hidden");
-      // Step1: タブを明るくハイライト
-      wrapper.classList.add("highlight-step1");
-      overlay.style.background = "transparent"; // wrapperの影で暗くするため
-
-      // メッセージをタブのすぐ下に配置
-      setTimeout(() => {
-        const rect = wrapper.getBoundingClientRect();
-        step1.style.top = (rect.bottom + 30) + "px";
-      }, 500);
-
-      document.getElementById("btn-next").addEventListener("click", () => {
-        wrapper.classList.remove("highlight-step1");
-        overlay.style.background = "rgba(0,0,0,0.8)";
+      // 「次へ」を押した時
+      document.getElementById("tut-next").addEventListener("click", () => {
         step1.classList.add("hidden");
         step2.classList.remove("hidden");
       });
 
-      document.getElementById("btn-close").addEventListener("click", () => {
+      // 「OK」を押した時
+      document.getElementById("tut-close").addEventListener("click", () => {
         tut.classList.add("hidden");
-        localStorage.setItem("ichinoya_tut_v2", "true");
+        localStorage.setItem("ichinoya_tut_v5", "true"); // 次回から出ないように記録
       });
     });
   </script>
