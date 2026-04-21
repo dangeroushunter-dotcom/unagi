@@ -16,10 +16,10 @@
 
     header {
       text-align: center;
-      background: #2a1c15; /* 重箱のような深い色 */
+      background: #2a1c15;
       color: #f8f4e6;
       padding: 24px 12px;
-      border-bottom: 4px solid #8a3b32; /* 臙脂色のアクセント */
+      border-bottom: 4px solid #8a3b32;
     }
     header h1 {
       margin: 0;
@@ -115,20 +115,20 @@
       justify-content: center;
       border-radius: 4px;
       overflow: hidden;
-      background: #fdfdfd;
+      background: #fff; /* 余白が出た際に目立たないよう白に設定 */
       border: 1px solid #f0e9e1;
     }
 
     .menu-img img {
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      object-fit: contain; /* ★ここを修正しました（全体を収める） */
       display: block;
     }
 
     .menu-text {
       flex: 1;
-      font-family: "Yu Gothic", "Hiragino Sans", sans-serif; /* 説明は読みやすいゴシック */
+      font-family: "Yu Gothic", "Hiragino Sans", sans-serif;
     }
 
     .menu-text h2 {
@@ -211,7 +211,7 @@
       .menu-img {
         width: 100%;
         margin: 0 auto;
-        aspect-ratio: 16 / 9; /* スマホでは少し横長の方が見栄えが良い */
+        aspect-ratio: 16 / 9;
       }
     }
   </style>
