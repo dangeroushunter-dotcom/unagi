@@ -1,19 +1,13 @@
-//スプレッドシートをCSVとして公開
+
+// スプレッドシートをCSVとして公開
 const SHEET_CSV_URL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vR7Rdo_eCMQF-HTxCjdZJDx6z8OQnYjc0WTVwuc_N6TNYpdwfFy5DLRmW35gbLZklPcuSGxmmGfafeT/pub?output=csv";
 
-//csvから読み込んだメニュー表の各行を配列にする
-//いまどのカテゴリのタブを選んでいるか覚える
 let allRows = [];
 let currentCategory = "";
 
-//即実行関数(その場1回だけ実行)
-//location.serch:URL内のクエリ情報を抽出して取得するlocation.search === "?lang=en"
-//クエリ:特定のデータを取得するためにシステムに送信される質問や指示
-//get("lang")でその中のlangの値を取り出す
 const lang = (() => {
   const p = new URLSearchParams(location.search).get("lang");
-  //pがjp,en,zhのどれかならpを，それ以外かNULLならjp
   return ["jp", "en", "zh"].includes(p) ? p : "jp";
 })();
 
@@ -59,7 +53,22 @@ const CATEGORY_TRANSLATION = {
     "デザート": "Dessert",
     "その他": "Others",
   },
-  zh: {},
+  zh: {
+    "季節のお料理": "季节菜肴",
+    "うなぎ料理": "鳗鱼料理",
+    "コース料理": "套餐",
+    "お料理": "单点菜肴",
+    "サラダ": "沙拉",
+    "ビール": "啤酒",
+    "日本酒": "日本酒 / 清酒",
+    "焼酎": "烧酒",
+    "ウイスキー": "威士忌",
+    "サワー類": "酸酒",
+    "ジャパニーズジン": "日本琴酒",
+    "ソフトドリンク": "软饮料",
+    "デザート": "甜点",
+    "その他": "其他",
+  },
 };
 
 const CATEGORY_ORDER = [
@@ -120,7 +129,7 @@ const cardHTML = (row) => {
 
   const imgSrc = normalizeImageUrl(get(row, "Image URL"));
   const img = imgSrc
-    ? `<img src="${imgSrc}" loading="lazy" alt="${get(row, "Name (EN)") || jpName}" onerror="this.style.display='none'">`
+    ? `<div class="menu-img"><img src="${imgSrc}" loading="lazy" alt="${get(row, "Name (EN)") || jpName}" onerror="this.parentElement.style.display='none'"></div>`
     : "";
 
   const take = get(row, "Takeout");
@@ -132,19 +141,22 @@ const cardHTML = (row) => {
   const noteJP = lang === "jp" ? get(row, "Note (JP)") : "";
   const noteHTML = noteJP ? `<p class="note-sub">${noteJP}</p>` : "";
 
+  // 説明文がない場合はマージンを詰める
+  const descHTML = desc ? `<p>${desc}</p>` : "";
+
   return `
     <div class="menu-item">
-      <div class="menu-img">${img}</div>
+      ${img}
       <div class="menu-text">
         ${
           cat
-            ? `<div class="cat">${translateCat(cat)}${sub && sub !== cat ? " - " + sub : ""}</div>`
+            ? `<div class="cat">${translateCat(cat)}${sub && sub !== cat ? " - " + translateCat(sub) : ""}</div>`
             : ""
         }
         <h2>${title}</h2>
         ${lang !== "jp" && jpName ? `<div class="jp-sub">${jpName}</div>` : ""}
         ${takeBadge}
-        <p>${desc}</p>
+        ${descHTML}
         ${noteHTML}
         ${formatPrice(get(row, "Price"))}
       </div>
@@ -161,7 +173,10 @@ const renderTabs = (cats) => {
     const el = document.createElement("div");
     el.className = "tab" + (c === currentCategory ? " active" : "");
     el.textContent = translateCat(c);
-    el.addEventListener("click", () => showCategory(c));
+    el.addEventListener("click", () => {
+      showCategory(c);
+      window.scrollTo({ top: 0, behavior: 'smooth' }); // タブ切り替え時に上部へスクロール
+    });
     tabs.appendChild(el);
   });
 };
@@ -174,9 +189,9 @@ const showCategory = (cat) => {
 
   const note = `
     <div class="note">${t(
-      "※ 表示価格は税込みです。写真はイメージです。ご飯大盛りは160円です。",
-      "※ Prices include tax. Photos are for illustration only. Large rice +¥160.",
-      "※ 价格含税，图片仅供参考。加大饭需加160日元。"
+      "※ 表示価格は税込みです。写真はイメージです。<br>ご飯大盛りは＋160円です。",
+      "※ Prices include tax. Photos are for illustration only.<br>Large rice +¥160.",
+      "※ 价格含税，图片仅供参考。<br>加大饭需加160日元。"
     )}</div>`;
 
   document.getElementById("menu").innerHTML = note + allRows.filter((r) => catOf(r) === cat).map(cardHTML).join("");
@@ -188,15 +203,21 @@ Papa.parse(SHEET_CSV_URL, {
   header: true,
   skipEmptyLines: true,
   complete: (res) => {
+    // 完全に中国語メニューを準備中にしたい場合は、ここのコメントアウトを外してください。
+    /*
     if (lang === "zh") {
       document.getElementById("header").innerHTML = `<h1>一之屋 菜单<br><span class="en">鳗鱼料理专门店</span></h1>`;
       document.getElementById("menu").innerHTML = `
-        <div class="note" style="text-align:center; padding:40px; font-size:1.1em;">
+        <div class="note" style="text-align:center; padding:60px 20px; font-size:1.1em; color:#3e2b22;">
           <p>中文菜单正在制作中。</p>
           <p>Please check the Japanese or English menu.</p>
+          <div style="margin-top:30px;">
+            <a href="index.html" style="color:#8a3b32; text-decoration:none; border:1px solid #8a3b32; padding:8px 16px; border-radius:4px;">戻る / Back</a>
+          </div>
         </div>`;
       return;
     }
+    */
 
     renderHeader();
 
@@ -204,9 +225,9 @@ Papa.parse(SHEET_CSV_URL, {
     const cats = [...new Set(allRows.map(catOf))].filter(Boolean);
 
     if (cats.length) showCategory(cats[0]);
-    else document.getElementById("menu").innerHTML = "<p>メニューがありません。</p>";
+    else document.getElementById("menu").innerHTML = "<p style='text-align:center; padding:40px;'>メニューがありません。</p>";
   },
   error: () => {
-    document.getElementById("menu").innerHTML = "<p>メニューの読み込みに失敗しました。</p>";
+    document.getElementById("menu").innerHTML = "<p style='text-align:center; padding:40px;'>メニューの読み込みに失敗しました。再読み込みしてください。</p>";
   },
 });
