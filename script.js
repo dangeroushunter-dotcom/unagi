@@ -18,7 +18,7 @@ const get = (row, wanted) => {
 };
 const catOf = (row) => get(row, "Group") || get(row, "Category");
 
-const t = (jp, en, zh) => (lang === "en" ? en : lang === "zh" ? zh : jp);
+const t = (jp, en, zh) => (lang === "en" ? en : lang === "zh" ? jp : jp);
 
 const normalizeImageUrl = (url) => {
   const u = String(url || "").trim();
@@ -162,12 +162,15 @@ const cardHTML = (row) => {
   const imgSrc = normalizeImageUrl(get(row, "Image URL"));
   const noImgText = t("画像準備中", "Image Coming Soon", "图片准备中");
   
-  // 黒背景に合うダークグレーのSVGアイコン付きプレースホルダー
+  // アイコンSVG
   const noImgSVG = `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>`;
+  
+  // HTML破壊防止のため、エラー時に表示する代替ブロックを隣に配置しておく構造に変更
   const placeholderHTML = `<div class="no-img-placeholder">${noImgSVG}<span>${noImgText}</span></div>`;
+  const hiddenPlaceholderHTML = `<div class="no-img-placeholder" style="display:none;">${noImgSVG}<span>${noImgText}</span></div>`;
 
   const imgContent = imgSrc
-    ? `<img src="${imgSrc}" loading="lazy" alt="${get(row, "Name (EN)") || jpName}" onerror="this.parentElement.innerHTML='${placeholderHTML.replace(/'/g, "\\'")}'">`
+    ? `<img src="${imgSrc}" loading="lazy" alt="${get(row, "Name (EN)") || jpName}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">${hiddenPlaceholderHTML}`
     : placeholderHTML;
 
   const take = get(row, "Takeout");
