@@ -7,7 +7,7 @@
   <style>
     body {
       font-family: "Hiragino Mincho ProN", "Yu Mincho", serif;
-      background: #f8f4e6; /* 和紙のような落ち着いた生成色 */
+      background: #111; /* 重厚感のある黒背景 */
       margin: 0;
       display: flex;
       flex-direction: column;
@@ -15,10 +15,11 @@
       justify-content: center;
       height: 100vh;
       height: 100dvh;
-      color: #3e2b22; /* 落ち着いた焦茶色 */
+      color: #e8e4dc; /* 文字は明るいベージュ系 */
       writing-mode: horizontal-tb;
       text-orientation: mixed;
       text-align: center;
+      overflow: hidden;
     }
 
     h1 {
@@ -31,7 +32,7 @@
     h1 small {
       font-family: "Yu Gothic", "Hiragino Sans", sans-serif;
       font-size: 1.1rem;
-      color: #666;
+      color: #999;
     }
 
     .btn-container {
@@ -45,24 +46,49 @@
     .btn {
       display: block;
       padding: 16px 20px;
-      border: 1px solid #3e2b22;
-      border-radius: 4px; /* 老舗らしく角丸を控えめに */
+      border: 1px solid #444; /* ボタンの枠線 */
+      border-radius: 4px;
       font-size: 1.2rem;
       cursor: pointer;
-      background: #fff;
-      color: #3e2b22;
+      background: #1a1a1a;
+      color: #e8e4dc;
       text-decoration: none;
       transition: all 0.3s ease;
       font-family: "Yu Gothic", "Hiragino Sans", sans-serif;
-      box-shadow: 2px 2px 8px rgba(0,0,0,0.05);
+      box-shadow: 2px 2px 8px rgba(0,0,0,0.5);
     }
 
     .btn:hover {
-      background: #3e2b22;
-      color: #fff;
+      background: #333;
+      border-color: #8a3b32; /* ホバー時に臙脂色 */
     }
 
-    /* スマホ小画面対応 */
+    /* ====== ロゴのスプラッシュ（フェードアウト）画面 ====== */
+    #splash {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #111; /* 背景と同じ黒 */
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 1s ease, visibility 1s ease;
+    }
+
+    #splash.fade-out {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    #splash img {
+      max-width: 250px;
+      width: 80%;
+      height: auto;
+    }
+
     @media (max-width: 480px) {
       .btn {
         font-size: 1.1rem;
@@ -72,6 +98,11 @@
   </style>
 </head>
 <body>
+
+  <div id="splash">
+    <img src="./rogo.png" alt="いちのや" onerror="this.style.display='none'; this.parentElement.innerHTML='<h2 style=\'color:#e8e4dc;\'>いちのや</h2>';">
+  </div>
+
   <h1>言語を選択してください<br><small>Select Language</small></h1>
 
   <div class="btn-container">
@@ -79,5 +110,14 @@
     <a href="menu.html?lang=en" class="btn">🇺🇸 English Menu</a>
     <a href="menu.html?lang=zh" class="btn">🇨🇳 中文菜单</a>
   </div>
+
+  <script>
+    // ページ読み込み後、2秒（2000ミリ秒）経ったらフェードアウトさせる
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        document.getElementById('splash').classList.add('fade-out');
+      }, 2000);
+    });
+  </script>
 </body>
 </html>
