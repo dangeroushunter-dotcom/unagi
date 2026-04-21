@@ -1,4 +1,3 @@
-// スプレッドシートをCSVとして公開
 const SHEET_CSV_URL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vR7Rdo_eCMQF-HTxCjdZJDx6z8OQnYjc0WTVwuc_N6TNYpdwfFy5DLRmW35gbLZklPcuSGxmmGfafeT/pub?output=csv";
 
@@ -98,7 +97,7 @@ const renderHeader = () => {
 
 const translateCat = (cat) => CATEGORY_TRANSLATION[lang]?.[cat] || cat;
 
-// ====== 金額と文字を切り分けて表示するロジック ======
+// ====== 金額と文字を切り分けて表示 ======
 const formatPrice = (pr) => {
   if (!pr) return "";
 
@@ -162,11 +161,11 @@ const cardHTML = (row) => {
   const imgSrc = normalizeImageUrl(get(row, "Image URL"));
   const noImgText = t("画像準備中", "Image Coming Soon", "图片准备中");
   
-  // ★画像エラーで枠が壊れないようにする安全な表示設定
-  const noImgSVG = `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#b0a090" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>`;
+  // 黒背景に合わせて、プレースホルダーの色を #888 に調整
+  const noImgSVG = `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>`;
   
-  const placeholderHTML = `<div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; height:100%; color:#b0a090; font-size:0.9em; font-family:'Yu Gothic', sans-serif;">${noImgSVG}<span>${noImgText}</span></div>`;
-  const hiddenPlaceholderHTML = `<div style="display:none; flex-direction:column; align-items:center; justify-content:center; gap:8px; height:100%; color:#b0a090; font-size:0.9em; font-family:'Yu Gothic', sans-serif;">${noImgSVG}<span>${noImgText}</span></div>`;
+  const placeholderHTML = `<div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; height:100%; color:#888; font-size:0.9em; font-family:'Yu Gothic', sans-serif;">${noImgSVG}<span>${noImgText}</span></div>`;
+  const hiddenPlaceholderHTML = `<div style="display:none; flex-direction:column; align-items:center; justify-content:center; gap:8px; height:100%; color:#888; font-size:0.9em; font-family:'Yu Gothic', sans-serif;">${noImgSVG}<span>${noImgText}</span></div>`;
 
   const imgContent = imgSrc
     ? `<img src="${imgSrc}" loading="lazy" alt="${get(row, "Name (EN)") || jpName}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">${hiddenPlaceholderHTML}`
