@@ -6,50 +6,67 @@
   <title>いちのや メニュー / Language Select</title>
   <style>
     body {
-      font-family: "Yu Gothic", "Hiragino Sans", sans-serif;
-      background: #fff8f0;
+      font-family: "Hiragino Mincho ProN", "Yu Mincho", serif;
+      background: #f8f4e6; /* 和紙のような落ち着いた生成色 */
       margin: 0;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100dvh;               /* ← スマホ対応の中央配置 */
-      color: #8b0000;
-      writing-mode: horizontal-tb;  /* ← 縦書き防止 */
+      height: 100vh;
+      height: 100dvh;
+      color: #3e2b22; /* 落ち着いた焦茶色 */
+      writing-mode: horizontal-tb;
       text-orientation: mixed;
       text-align: center;
     }
 
     h1 {
-      font-size: 1.6rem;
-      margin-bottom: 40px;
-      line-height: 1.4;
+      font-size: 1.8rem;
+      margin-bottom: 50px;
+      line-height: 1.5;
+      font-weight: normal;
+    }
+
+    h1 small {
+      font-family: "Yu Gothic", "Hiragino Sans", sans-serif;
+      font-size: 1.1rem;
+      color: #666;
+    }
+
+    .btn-container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      width: 100%;
+      max-width: 320px;
     }
 
     .btn {
-      display: inline-block;
-      padding: 14px 40px;
-      margin: 10px;
-      border: 2px solid #8b0000;
-      border-radius: 10px;
-      font-size: 1.3rem;
+      display: block;
+      padding: 16px 20px;
+      border: 1px solid #3e2b22;
+      border-radius: 4px; /* 老舗らしく角丸を控えめに */
+      font-size: 1.2rem;
       cursor: pointer;
       background: #fff;
-      color: #8b0000;
-      transition: .2s;
+      color: #3e2b22;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      font-family: "Yu Gothic", "Hiragino Sans", sans-serif;
+      box-shadow: 2px 2px 8px rgba(0,0,0,0.05);
     }
 
     .btn:hover {
-      background: #8b0000;
+      background: #3e2b22;
       color: #fff;
     }
 
     /* スマホ小画面対応 */
     @media (max-width: 480px) {
       .btn {
-        width: 80%;
         font-size: 1.1rem;
-        padding: 12px 0;
+        padding: 14px 0;
       }
     }
   </style>
@@ -57,11 +74,10 @@
 <body>
   <h1>言語を選択してください<br><small>Select Language</small></h1>
 
-  <div>
+  <div class="btn-container">
     <a href="menu.html?lang=jp" class="btn">🇯🇵 日本語メニュー</a>
     <a href="menu.html?lang=en" class="btn">🇺🇸 English Menu</a>
     <a href="menu.html?lang=zh" class="btn">🇨🇳 中文菜单</a>
-
   </div>
 </body>
 </html>
