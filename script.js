@@ -1,4 +1,3 @@
-
 // スプレッドシートをCSVとして公開
 const SHEET_CSV_URL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vR7Rdo_eCMQF-HTxCjdZJDx6z8OQnYjc0WTVwuc_N6TNYpdwfFy5DLRmW35gbLZklPcuSGxmmGfafeT/pub?output=csv";
@@ -99,24 +98,59 @@ const renderHeader = () => {
 
 const translateCat = (cat) => CATEGORY_TRANSLATION[lang]?.[cat] || cat;
 
+// ====== 金額と文字を切り分けて表示するロジック ======
 const formatPrice = (pr) => {
   if (!pr) return "";
-  const tr = (s) =>
-    lang === "en"
-      ? s.replace(/グラス/g, "Glass").replace(/ボトル/g, "Bottle").replace(/ポット/g, "Pot")
-      : lang === "zh"
-      ? s.replace(/グラス/g, "杯").replace(/ボトル/g, "瓶").replace(/ポット/g, "壶")
-      : s;
 
-  const toYen = (s) => s.replace(/(\d[\d,]*)(?!\s*ml)/g, "￥$1");
+  let normalized = pr
+    .replace(/ｸﾞﾗｽ/g, "グラス")
+    .replace(/ﾊｰﾌﾎﾞﾄﾙ/g, "ハーフボトル")
+    .replace(/ﾌﾙﾎﾞﾄﾙ/g, "フルボトル")
+    .replace(/ﾎﾞﾄﾙ/g, "ボトル")
+    .replace(/ﾎﾟｯﾄ/g, "ポット");
 
-  if (pr.includes("/"))
-    return pr
-      .split("/")
-      .map((p) => `<div class="price">${toYen(tr(p.trim()))}</div>`)
-      .join("");
+  const tr = (s) => {
+    if (lang === "en") {
+      return s.replace(/グラス/g, "Glass")
+              .replace(/ハーフボトル/g, "Half Bottle")
+              .replace(/フルボトル/g, "Full Bottle")
+              .replace(/ボトル/g, "Bottle")
+              .replace(/ポット/g, "Pot");
+    }
+    if (lang === "zh") {
+      return s.replace(/グラス/g, "杯")
+              .replace(/ハーフボトル/g, "半瓶")
+              .replace(/フルボトル/g, "全瓶")
+              .replace(/ボトル/g, "瓶")
+              .replace(/ポット/g, "壶");
+    }
+    return s;
+  };
 
-  return `<p class="price">${toYen(tr(pr.trim()))}</p>`;
+  const formatSinglePrice = (s) => {
+    let text = tr(s.trim());
+    // 文字列から「数字（金額）」だけを抜き出し、前後の文字（グラス等）と切り分ける
+    const match = text.match(/(.*?)(\d[\d,]*)(?!\s*ml)(.*)/);
+    
+    if (match) {
+      const beforeLabel = match[1].trim() ? `<span class="price-label">${match[1].trim()}</span>` : "";
+      const priceNum = match[2];
+      const afterLabel = match[3].trim() ? `<span class="price-label">${match[3].trim()}</span>` : "";
+      
+      return `${beforeLabel}<span class="price-value">￥${priceNum}</span>${afterLabel}`;
+    }
+    // 金額が含まれていない場合はそのまま表示
+    return `<span class="price-label">${text}</span>`;
+  };
+
+  if (normalized.includes("/")) {
+    return `<div class="price-container">` +
+      normalized.split("/")
+      .map((p) => `<div class="price-line">${formatSinglePrice(p)}</div>`)
+      .join("") + `</div>`;
+  }
+
+  return `<div class="price-container"><div class="price-line">${formatSinglePrice(normalized)}</div></div>`;
 };
 
 const cardHTML = (row) => {
@@ -128,9 +162,11 @@ const cardHTML = (row) => {
   const desc = t(get(row, "Description (JP)"), get(row, "Description (EN)"), get(row, "Description (ZH)"));
 
   const imgSrc = normalizeImageUrl(get(row, "Image URL"));
-  const img = imgSrc
-    ? `<div class="menu-img"><img src="${imgSrc}" loading="lazy" alt="${get(row, "Name (EN)") || jpName}" onerror="this.parentElement.style.display='none'"></div>`
-    : "";
+  const noImgText = t("画像準備中", "Image Coming Soon", "图片准备中");
+  
+  const imgContent = imgSrc
+    ? `<img src="${imgSrc}" loading="lazy" alt="${get(row, "Name (EN)") || jpName}" onerror="this.parentElement.innerHTML='<div class=\\'no-img-text\\'>${noImgText}</div>'">`
+    : `<div class="no-img-text">${noImgText}</div>`;
 
   const take = get(row, "Takeout");
   const takeBadge =
@@ -141,12 +177,11 @@ const cardHTML = (row) => {
   const noteJP = lang === "jp" ? get(row, "Note (JP)") : "";
   const noteHTML = noteJP ? `<p class="note-sub">${noteJP}</p>` : "";
 
-  // 説明文がない場合はマージンを詰める
   const descHTML = desc ? `<p>${desc}</p>` : "";
 
   return `
     <div class="menu-item">
-      ${img}
+      <div class="menu-img">${imgContent}</div>
       <div class="menu-text">
         ${
           cat
@@ -175,7 +210,7 @@ const renderTabs = (cats) => {
     el.textContent = translateCat(c);
     el.addEventListener("click", () => {
       showCategory(c);
-      window.scrollTo({ top: 0, behavior: 'smooth' }); // タブ切り替え時に上部へスクロール
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     });
     tabs.appendChild(el);
   });
@@ -194,7 +229,20 @@ const showCategory = (cat) => {
       "※ 价格含税，图片仅供参考。<br>加大饭需加160日元。"
     )}</div>`;
 
-  document.getElementById("menu").innerHTML = note + allRows.filter((r) => catOf(r) === cat).map(cardHTML).join("");
+  let drinkNote = "";
+  if (["ウイスキー", "ジャパニーズジン", "焼酎"].includes(cat)) {
+    drinkNote = `
+      <div class="drink-note">
+        ${t(
+          "※ ロック、水割り、お湯割り、ソーダ割からお選びください。",
+          "※ Please choose from: On the rocks, With water, With hot water, or With soda.",
+          "※ 请选择：加冰、加水、加热水或加苏打水。"
+        )}
+      </div>`;
+  }
+
+  const itemsHTML = allRows.filter((r) => catOf(r) === cat).map(cardHTML).join("");
+  document.getElementById("menu").innerHTML = note + drinkNote + itemsHTML;
 };
 
 // ===== load CSV =====
@@ -203,22 +251,6 @@ Papa.parse(SHEET_CSV_URL, {
   header: true,
   skipEmptyLines: true,
   complete: (res) => {
-    // 完全に中国語メニューを準備中にしたい場合は、ここのコメントアウトを外してください。
-    /*
-    if (lang === "zh") {
-      document.getElementById("header").innerHTML = `<h1>一之屋 菜单<br><span class="en">鳗鱼料理专门店</span></h1>`;
-      document.getElementById("menu").innerHTML = `
-        <div class="note" style="text-align:center; padding:60px 20px; font-size:1.1em; color:#3e2b22;">
-          <p>中文菜单正在制作中。</p>
-          <p>Please check the Japanese or English menu.</p>
-          <div style="margin-top:30px;">
-            <a href="index.html" style="color:#8a3b32; text-decoration:none; border:1px solid #8a3b32; padding:8px 16px; border-radius:4px;">戻る / Back</a>
-          </div>
-        </div>`;
-      return;
-    }
-    */
-
     renderHeader();
 
     allRows = (res.data || []).filter(visibleRow);
