@@ -171,7 +171,8 @@ if (lang === "zh") {
     if (imgSrc) {
       imgBoxHTML = `<div class="menu-img"><img src="${imgSrc}" loading="lazy" alt="${get(row, "Name (EN)") || jpName}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">${hiddenPlaceholderHTML}</div>`;
     } else {
-      if (cat !== "その他" && cat !== "ソフトドリンク") {
+      // ★ 「サワー類」も画像枠を作らないように追加しました
+      if (cat !== "その他" && cat !== "ソフトドリンク" && cat !== "サワー類") {
         imgBoxHTML = `<div class="menu-img">${placeholderHTML}</div>`;
       }
     }
