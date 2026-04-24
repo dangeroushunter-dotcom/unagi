@@ -1,3 +1,4 @@
+// スプレッドシートをCSVとして公開
 const SHEET_CSV_URL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vR7Rdo_eCMQF-HTxCjdZJDx6z8OQnYjc0WTVwuc_N6TNYpdwfFy5DLRmW35gbLZklPcuSGxmmGfafeT/pub?output=csv";
 
@@ -17,7 +18,18 @@ const get = (row, wanted) => {
 };
 const catOf = (row) => get(row, "Group") || get(row, "Category");
 
+// ★中国語のバグを修正しました（lang === "zh" の時は zh を返すように修正）
 const t = (jp, en, zh) => (lang === "en" ? en : lang === "zh" ? zh : jp);
+
+// ★URLが含まれるテキストを動画ボタンに変換する関数
+const linkify = (text) => {
+  if (!text) return "";
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  return text.replace(urlRegex, function(url) {
+    const btnText = t("🎥 動画を見る", "🎥 Watch Video", "🎥 观看视频");
+    return `<br><a href="${url}" target="_blank" class="video-link">${btnText}</a>`;
+  });
+};
 
 const normalizeImageUrl = (url) => {
   const u = String(url || "").trim();
@@ -47,6 +59,9 @@ const CATEGORY_TRANSLATION = {
     "ウイスキー": "Whisky",
     "サワー類": "Sours",
     "ジャパニーズジン": "Japanese Gin",
+    "ワイン": "Wine",           // ★ワイン追加
+    "赤ワイン": "Red Wine",       // ★赤ワイン追加
+    "白ワイン": "White Wine",     // ★白ワイン追加
     "ソフトドリンク": "Soft Drinks",
     "デザート": "Dessert",
     "その他": "Others",
@@ -63,6 +78,9 @@ const CATEGORY_TRANSLATION = {
     "ウイスキー": "威士忌",
     "サワー類": "酸酒",
     "ジャパニーズジン": "日本琴酒",
+    "ワイン": "葡萄酒",           // ★ワイン追加
+    "赤ワイン": "红葡萄酒",       // ★赤ワイン追加
+    "白ワイン": "白葡萄酒",       // ★白ワイン追加
     "ソフトドリンク": "软饮料",
     "デザート": "甜点",
     "その他": "其他",
@@ -81,6 +99,7 @@ const CATEGORY_ORDER = [
   "ウイスキー",
   "サワー類",
   "ジャパニーズジン",
+  "ワイン",         // ★ワイン追加
   "ソフトドリンク",
   "デザート",
 ];
@@ -97,56 +116,32 @@ const renderHeader = () => {
 
 const translateCat = (cat) => CATEGORY_TRANSLATION[lang]?.[cat] || cat;
 
-// ====== 金額と文字を切り分けて表示 ======
+// ====== 金額 ======
 const formatPrice = (pr) => {
   if (!pr) return "";
-
-  let normalized = pr
-    .replace(/ｸﾞﾗｽ/g, "グラス")
-    .replace(/ﾊｰﾌﾎﾞﾄﾙ/g, "ハーフボトル")
-    .replace(/ﾌﾙﾎﾞﾄﾙ/g, "フルボトル")
-    .replace(/ﾎﾞﾄﾙ/g, "ボトル")
-    .replace(/ﾎﾟｯﾄ/g, "ポット");
+  let normalized = pr.replace(/ｸﾞﾗｽ/g, "グラス").replace(/ﾊｰﾌﾎﾞﾄﾙ/g, "ハーフボトル").replace(/ﾌﾙﾎﾞﾄﾙ/g, "フルボトル").replace(/ﾎﾞﾄﾙ/g, "ボトル").replace(/ﾎﾟｯﾄ/g, "ポット");
 
   const tr = (s) => {
-    if (lang === "en") {
-      return s.replace(/グラス/g, "Glass")
-              .replace(/ハーフボトル/g, "Half Bottle")
-              .replace(/フルボトル/g, "Full Bottle")
-              .replace(/ボトル/g, "Bottle")
-              .replace(/ポット/g, "Pot");
-    }
-    if (lang === "zh") {
-      return s.replace(/グラス/g, "杯")
-              .replace(/ハーフボトル/g, "半瓶")
-              .replace(/フルボトル/g, "全瓶")
-              .replace(/ボトル/g, "瓶")
-              .replace(/ポット/g, "壶");
-    }
+    if (lang === "en") return s.replace(/グラス/g, "Glass").replace(/ハーフボトル/g, "Half Bottle").replace(/フルボトル/g, "Full Bottle").replace(/ボトル/g, "Bottle").replace(/ポット/g, "Pot");
+    if (lang === "zh") return s.replace(/グラス/g, "杯").replace(/ハーフボトル/g, "半瓶").replace(/フルボトル/g, "全瓶").replace(/ボトル/g, "瓶").replace(/ポット/g, "壶");
     return s;
   };
 
   const formatSinglePrice = (s) => {
     let text = tr(s.trim());
     const match = text.match(/(.*?)(\d[\d,]*)(?!\s*ml)(.*)/);
-    
     if (match) {
       const beforeLabel = match[1].trim() ? `<span class="price-label">${match[1].trim()}</span>` : "";
       const priceNum = match[2];
       const afterLabel = match[3].trim() ? `<span class="price-label">${match[3].trim()}</span>` : "";
-      
       return `${beforeLabel}<span class="price-value">￥${priceNum}</span>${afterLabel}`;
     }
     return `<span class="price-label">${text}</span>`;
   };
 
   if (normalized.includes("/")) {
-    return `<div class="price-container">` +
-      normalized.split("/")
-      .map((p) => `<div class="price-line">${formatSinglePrice(p)}</div>`)
-      .join("") + `</div>`;
+    return `<div class="price-container">` + normalized.split("/").map((p) => `<div class="price-line">${formatSinglePrice(p)}</div>`).join("") + `</div>`;
   }
-
   return `<div class="price-container"><div class="price-line">${formatSinglePrice(normalized)}</div></div>`;
 };
 
@@ -156,41 +151,41 @@ const cardHTML = (row) => {
 
   const title = t(get(row, "Name (JP)"), get(row, "Name (EN)"), get(row, "Name (ZH)"));
   const jpName = get(row, "Name (JP)");
-  const desc = t(get(row, "Description (JP)"), get(row, "Description (EN)"), get(row, "Description (ZH)"));
+  
+  // ★動画リンク関数を通す
+  const desc = linkify(t(get(row, "Description (JP)"), get(row, "Description (EN)"), get(row, "Description (ZH)")));
 
   const imgSrc = normalizeImageUrl(get(row, "Image URL"));
   const noImgText = t("画像準備中", "Image Coming Soon", "图片准备中");
   
-  // 黒背景に合わせて、プレースホルダーの色を #888 に調整
-  const noImgSVG = `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>`;
+  const noImgSVG = `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#b0a090" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>`;
   
-  const placeholderHTML = `<div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; height:100%; color:#888; font-size:0.9em; font-family:'Yu Gothic', sans-serif;">${noImgSVG}<span>${noImgText}</span></div>`;
-  const hiddenPlaceholderHTML = `<div style="display:none; flex-direction:column; align-items:center; justify-content:center; gap:8px; height:100%; color:#888; font-size:0.9em; font-family:'Yu Gothic', sans-serif;">${noImgSVG}<span>${noImgText}</span></div>`;
+  const placeholderHTML = `<div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; height:100%; color:#b0a090; font-size:0.9em; font-family:'Yu Gothic', sans-serif;">${noImgSVG}<span>${noImgText}</span></div>`;
+  const hiddenPlaceholderHTML = `<div style="display:none; flex-direction:column; align-items:center; justify-content:center; gap:8px; height:100%; color:#b0a090; font-size:0.9em; font-family:'Yu Gothic', sans-serif;">${noImgSVG}<span>${noImgText}</span></div>`;
 
-  const imgContent = imgSrc
-    ? `<img src="${imgSrc}" loading="lazy" alt="${get(row, "Name (EN)") || jpName}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">${hiddenPlaceholderHTML}`
-    : placeholderHTML;
+  // ★「その他」「ソフトドリンク」で画像がない場合は枠ごと作らない
+  let imgBoxHTML = "";
+  if (imgSrc) {
+    imgBoxHTML = `<div class="menu-img"><img src="${imgSrc}" loading="lazy" alt="${get(row, "Name (EN)") || jpName}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">${hiddenPlaceholderHTML}</div>`;
+  } else {
+    if (cat !== "その他" && cat !== "ソフトドリンク") {
+      imgBoxHTML = `<div class="menu-img">${placeholderHTML}</div>`;
+    }
+  }
 
   const take = get(row, "Takeout");
-  const takeBadge =
-    take && /ok/i.test(take)
-      ? `<span class="takeout-badge">${t("テイクアウト可", "Takeout OK", "可外带")}</span>`
-      : "";
+  const takeBadge = take && /ok/i.test(take) ? `<span class="takeout-badge">${t("テイクアウト可", "Takeout OK", "可外带")}</span>` : "";
 
   const noteJP = lang === "jp" ? get(row, "Note (JP)") : "";
-  const noteHTML = noteJP ? `<p class="note-sub">${noteJP}</p>` : "";
-
+  // ★Noteにも動画リンク関数を通す
+  const noteHTML = noteJP ? `<p class="note-sub">${linkify(noteJP)}</p>` : "";
   const descHTML = desc ? `<p>${desc}</p>` : "";
 
   return `
     <div class="menu-item">
-      <div class="menu-img">${imgContent}</div>
+      ${imgBoxHTML}
       <div class="menu-text">
-        ${
-          cat
-            ? `<div class="cat">${translateCat(cat)}${sub && sub !== cat ? " - " + translateCat(sub) : ""}</div>`
-            : ""
-        }
+        ${cat ? `<div class="cat">${translateCat(cat)}${sub && sub !== cat ? " - " + translateCat(sub) : ""}</div>` : ""}
         <h2>${title}</h2>
         ${lang !== "jp" && jpName ? `<div class="jp-sub">${jpName}</div>` : ""}
         ${takeBadge}
@@ -233,13 +228,24 @@ const showCategory = (cat) => {
     )}</div>`;
 
   let drinkNote = "";
-  if (["ウイスキー", "ジャパニーズジン", "焼酎"].includes(cat)) {
+  
+  // ★ジン、ウイスキーはお湯割りを非表示に
+  if (cat === "焼酎") {
     drinkNote = `
       <div class="drink-note">
         ${t(
           "※ ロック、水割り、お湯割り、ソーダ割からお選びください。",
           "※ Please choose from: On the rocks, With water, With hot water, or With soda.",
           "※ 请选择：加冰、加水、加热水或加苏打水。"
+        )}
+      </div>`;
+  } else if (cat === "ウイスキー" || cat === "ジャパニーズジン") {
+    drinkNote = `
+      <div class="drink-note">
+        ${t(
+          "※ ロック、水割り、ソーダ割からお選びください。",
+          "※ Please choose from: On the rocks, With water, or With soda.",
+          "※ 请选择：加冰、加水、或加苏打水。"
         )}
       </div>`;
   }
