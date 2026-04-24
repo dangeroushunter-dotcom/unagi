@@ -7,7 +7,7 @@
   <style>
     body {
       font-family: "Hiragino Mincho ProN", "Yu Mincho", serif;
-      background: #111; /* 重厚感のある黒背景 */
+      background: #111; /* 黒背景 */
       margin: 0;
       display: flex;
       flex-direction: column;
@@ -15,7 +15,7 @@
       justify-content: center;
       height: 100vh;
       height: 100dvh;
-      color: #e8e4dc; /* 文字は明るいベージュ系 */
+      color: #e8e4dc;
       writing-mode: horizontal-tb;
       text-orientation: mixed;
       text-align: center;
@@ -41,12 +41,13 @@
       gap: 20px;
       width: 100%;
       max-width: 320px;
+      z-index: 1; /* ボタンを手前に */
     }
 
     .btn {
       display: block;
       padding: 16px 20px;
-      border: 1px solid #444; /* ボタンの枠線 */
+      border: 1px solid #444;
       border-radius: 4px;
       font-size: 1.2rem;
       cursor: pointer;
@@ -60,17 +61,18 @@
 
     .btn:hover {
       background: #333;
-      border-color: #8a3b32; /* ホバー時に臙脂色 */
+      border-color: #8a3b32;
     }
 
-    /* ====== ロゴのスプラッシュ（フェードアウト）画面 ====== */
+    /* ====== ロゴのフェードアウト画面 ====== */
     #splash {
       position: fixed;
       top: 0;
       left: 0;
       width: 100vw;
       height: 100vh;
-      background: #111; /* 背景と同じ黒 */
+      height: 100dvh; /* スマホのURLバーなどを考慮した全画面 */
+      background: #111;
       z-index: 9999;
       display: flex;
       align-items: center;
@@ -83,10 +85,12 @@
       visibility: hidden;
     }
 
+    /* ★ ここを修正：どの画面サイズでも全画面にピッタリ敷き詰める */
     #splash img {
-      max-width: 250px;
-      width: 80%;
-      height: auto;
+      width: 100%;
+      height: 100%;
+      object-fit: cover; /* 隙間なく全画面を覆う設定 */
+      object-position: center; /* 画像の中心を基準にする */
     }
 
     @media (max-width: 480px) {
@@ -100,7 +104,7 @@
 <body>
 
   <div id="splash">
-    <img src="./rogo.jpg" alt="いちのや" onerror="this.style.display='none'; this.parentElement.innerHTML='<h2 style=\'color:#e8e4dc;\'>いちのや</h2>';">
+    <img src="./logo.png" alt="いちのや" onerror="this.style.display='none'; this.parentElement.innerHTML='<h2 style=\'color:#e8e4dc;\'>いちのや</h2>';">
   </div>
 
   <h1>言語を選択してください<br><small>Select Language</small></h1>
@@ -112,7 +116,7 @@
   </div>
 
   <script>
-    // ページ読み込み後、2秒（2000ミリ秒）経ったらフェードアウトさせる
+    // ページ読み込み後、2秒経ったらロゴをフェードアウト
     window.addEventListener('load', () => {
       setTimeout(() => {
         document.getElementById('splash').classList.add('fade-out');
