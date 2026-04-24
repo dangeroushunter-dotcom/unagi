@@ -55,7 +55,7 @@ if (lang === "zh") {
     if (!text) return "";
     const urlRegex = /(https?:\/\/[^\s]+)/g;
     return text.replace(urlRegex, function(url) {
-      const btnText = t("🎥 動画を見る", "🎥 Watch Video", "🎥 观看视频");
+      const btnText = t("🎥 動画を見る", "🎥 How to eat", "🎥 观看视频");
       return `<br><a href="${url}" target="_blank" class="video-link">${btnText}</a>`;
     });
   };
