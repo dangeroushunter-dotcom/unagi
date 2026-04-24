@@ -176,7 +176,7 @@
       display: inline-block;
       margin-top: 10px;
       padding: 8px 16px;
-      background: #8a3b32; /* お店のカラー */
+      background: #8a3b32; 
       color: #fff !important;
       text-decoration: none;
       border-radius: 4px;
@@ -266,14 +266,18 @@
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       const p = new URLSearchParams(location.search).get("lang") || "jp";
+      
+      // ★中国語の時はチュートリアルを完全に隠して終了する
+      if (p === "zh") {
+        const tut = document.getElementById("tutorial");
+        if (tut) tut.style.display = "none";
+        return;
+      }
+
       if (p === "en") {
         document.getElementById("tut-msg1").innerHTML = "Swipe horizontally<br>to change categories";
         document.getElementById("tut-msg2").innerHTML = "Scroll down<br>to view the menu";
         document.getElementById("tut-next").innerText = "Next";
-      } else if (p === "zh") {
-        document.getElementById("tut-msg1").innerHTML = "左右滑动切换分类";
-        document.getElementById("tut-msg2").innerHTML = "向下滑动查看菜单";
-        document.getElementById("tut-next").innerText = "下一步";
       }
 
       const tut = document.getElementById("tutorial");
@@ -281,12 +285,11 @@
       const step2 = document.getElementById("tut-step2");
       const tabsWrapper = document.querySelector(".tabs-wrapper");
       
-      const isTutDone = localStorage.getItem("ichinoya_tut_v8"); // キャッシュ対策
+      const isTutDone = localStorage.getItem("ichinoya_tut_v9"); 
       
       if (!isTutDone) {
         tut.classList.remove("hidden");
         
-        // 吹き出しの位置をタブから「手1個分」下に下げる（前回から数字を大きくしました）
         setTimeout(() => {
           if (tabsWrapper) {
             const rect = tabsWrapper.getBoundingClientRect();
@@ -304,7 +307,7 @@
 
       document.getElementById("tut-close").addEventListener("click", () => {
         tut.classList.add("hidden");
-        localStorage.setItem("ichinoya_tut_v8", "true");
+        localStorage.setItem("ichinoya_tut_v9", "true");
       });
     });
   </script>
