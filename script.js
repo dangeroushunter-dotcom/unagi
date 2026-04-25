@@ -239,7 +239,7 @@ if (lang === "zh") {
             "※ Please choose from: On the rocks, With water, With hot water, or With soda."
           )}
         </div>`;
-    } else if (cat === "ウイスキー" || cat === "ジャパニーズジン") {
+    } else if (cat === "ウイスキー" ) {
       drinkNote = `
         <div class="drink-note">
           ${t(
@@ -248,7 +248,7 @@ if (lang === "zh") {
           )}
         </div>`;
     }
-
+ 
     const itemsHTML = allRows.filter((r) => catOf(r) === cat).map(cardHTML).join("");
     document.getElementById("menu").innerHTML = note + drinkNote + itemsHTML;
   };
